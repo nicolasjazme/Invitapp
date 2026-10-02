@@ -243,15 +243,32 @@ class EventController extends Controller
         $token = Session::get('token_jwt');
 
         try {
-            // Obtenemos los detalles frescos del evento seleccionado
-            $response = Http::withToken($token)->timeout(5)->get("http://localhost:3000/api/eventos/{$eventoId}");
+            // Obtenemos todos tus eventos usando la ruta confirmada
+            $response = Http::withToken($token)
+                ->timeout(5)
+                ->get("http://localhost:3000/api/eventos/mis-eventos/todos");
 
             if ($response->successful()) {
-                $eventoSeleccionado = $response->json('evento') ?? $response->json();
-                Session::put('evento_activo', $eventoSeleccionado);
-                Session::save();
+                $eventos = $response->json('eventos') ?? [];
                 
-                return redirect()->route('anfitrion.index')->with('success', '¡Celebración seleccionada y lista para gestionar!');
+                // Filtramos el evento específico que seleccionaste en la tarjeta
+                $eventoSeleccionado = null;
+                foreach ($eventos as $ev) {
+                    $id = $ev['_id'] ?? $ev['id'] ?? null;
+                    if ((string)$id === (string)$eventoId) {
+                        $eventoSeleccionado = $ev;
+                        break;
+                    }
+                }
+
+                if ($eventoSeleccionado) {
+                    // Lo guardamos como el evento activo en la sesión
+                    Session::put('evento_activo', $eventoSeleccionado);
+                    Session::save();
+                    
+                    // Redirigimos al Dashboard
+                    return redirect()->route('anfitrion.index')->with('success', '¡Celebración seleccionada y lista para gestionar!');
+                }
             }
 
             return back()->with('error', 'No se pudo cargar el evento seleccionado.');

@@ -15,65 +15,27 @@ class HostController extends Controller
     /**
      * Panel de control principal del Anfitrión / Organizador
      */
-    public function index()
-    {
-        $token = Session::get('token_jwt');
-        if (!$token) {
-            return redirect('/login')->with('error', 'Sesión inválida. Por favor, vuelve a ingresar.');
-        }
+  public function index()
+{
+    // 1. Verificamos si hay un evento activo en la sesión
+    $eventoActivo = Session::get('evento_activo');
 
-        // 1. Verificamos si hay un evento activo seleccionado en la sesión
-        $eventoActivo = Session::get('evento_activo');
-        if (!$eventoActivo || !isset($eventoActivo['_id'])) {
-            return redirect()->route('anfitrion.mis_eventos')->with('info', 'Selecciona o crea una celebración para administrarla.');
-        }
-
-        $eventoId = $eventoActivo['_id'];
-
-        try {
-            // 2. Consultamos a Node.js los detalles frescos de ESTE evento en específico
-            $response = Http::withToken($token)->get("{$this->backendUrl}/eventos/{$eventoId}");
-
-            if ($response->successful() && !empty($response->json('evento') ?? $response->json())) {
-                $evento = $response->json('evento') ?? $response->json();
-                Session::put('evento_activo', $evento);
-
-                // 3. Consultamos la lista nominal de invitados amarrada a este evento
-                $resInvitados = Http::withToken($token)->get("{$this->backendUrl}/eventos/{$eventoId}/invitados");
-                $invitados = $resInvitados->successful() ? ($resInvitados->json('invitados') ?? $resInvitados->json() ?? []) : [];
-
-                // 4. Calculamos métricas en tiempo real
-                $totalInvitados = count($invitados);
-                $confirmados = count(array_filter($invitados, function ($inv) {
-                    $estado = $inv['estadoConfirmacion'] ?? $inv['estadoAsistencia'] ?? 'pendiente';
-                    return $estado === 'confirmado';
-                }));
-                $pendientes = count(array_filter($invitados, function ($inv) {
-                    $estado = $inv['estadoConfirmacion'] ?? $inv['estadoAsistencia'] ?? 'pendiente';
-                    return $estado === 'pendiente';
-                }));
-                $rechazados = count(array_filter($invitados, function ($inv) {
-                    $estado = $inv['estadoConfirmacion'] ?? $inv['estadoAsistencia'] ?? 'pendiente';
-                    return $estado === 'rechazado';
-                }));
-
-                $metricas = [
-                    'total_invitados' => $totalInvitados,
-                    'confirmados'     => $confirmados,
-                    'pendientes'      => $pendientes,
-                    'rechazados'      => $rechazados,
-                ];
-
-                return view('anfitrion.index', compact('evento', 'invitados', 'metricas'));
-            }
-
-            return redirect()->route('anfitrion.mis_eventos')->with('error', 'No se pudo cargar la información del evento.');
-
-        } catch (\Exception $e) {
-            Log::error('Error en HostController@index: ' . $e->getMessage());
-            return view('anfitrion.index')->with('error', 'El servidor de datos (Node.js) se encuentra desconectado temporalmente.');
-        }
+    // 2. Si NO hay evento activo, lo mandamos a la pantalla de elegir tarjeta
+    if (!$eventoActivo) {
+        return redirect()->route('anfitrion.mis_eventos');
     }
+
+    // 3. Si SÍ hay un evento activo (ya hizo clic en una tarjeta), le mostramos el Dashboard
+    // Aquí puedes simular las métricas o pedir las reales al backend en Node
+    $metricas = [
+        'total_invitados' => count($eventoActivo['invitados'] ?? []),
+        'confirmados' => collect($eventoActivo['invitados'] ?? [])->where('estadoConfirmacion', 'confirmado')->count(),
+        'pendientes' => collect($eventoActivo['invitados'] ?? [])->where('estadoConfirmacion', 'pendiente')->count(),
+    ];
+
+    // Carga la vista resources/views/anfitrion/index.blade.php
+    return view('anfitrion.index', compact('eventoActivo', 'metricas'));
+}
 
     /**
      * Muestra la vista de gestión de invitados del anfitrión
@@ -315,24 +277,22 @@ class HostController extends Controller
     /**
      * Muestra la lista de todos los eventos del anfitrión
      */
-    public function misEventos()
+public function misEventos()
     {
         $token = Session::get('token_jwt');
-        $usuario = Session::get('usuario_logueado');
-        $idUsuario = $usuario['_id'] ?? $usuario['id'] ?? null;
         
         try {
-            $response = Http::withToken($token)->timeout(5)->get("{$this->backendUrl}/eventos");
+            // Llamamos directamente a la ruta correcta que el backend preparó
+            $response = Http::withToken($token)
+                ->timeout(5)
+                ->get("http://localhost:3000/api/eventos/mis-eventos/todos");
+            
             $data = $response->json();
             
-            $todosLosEventos = $data['eventos'] ?? $data['data'] ?? (is_array($data) && !isset($data['mensaje']) ? $data : []);
-            
-            $todosMisEventos = array_filter($todosLosEventos, function($ev) use ($idUsuario) {
-                $orgId = $ev['organizadorId']['_id'] ?? $ev['organizadorId'] ?? $ev['creador_id'] ?? null;
-                return (string) $orgId === (string) $idUsuario;
-            });
+            // Extraemos el array limpio
+            $todosMisEventos = $data['eventos'] ?? [];
 
-            return view('anfitrion.mis-eventos', ['todosMisEventos' => $todosMisEventos]);
+            return view('anfitrion.mis-eventos', compact('todosMisEventos'));
             
         } catch (\Exception $e) {
             return back()->with('error', 'No se pudieron cargar tus celebraciones.');
