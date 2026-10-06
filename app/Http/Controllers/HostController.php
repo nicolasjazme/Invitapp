@@ -206,22 +206,47 @@ class HostController extends Controller
      * Registrar respuesta de asistencia pública desde la Landing
      */
     public function registrarAsistencia(Request $request)
-    {
-        $datos = [
-            'nombre' => $request->input('nombre'),
-            'correo' => $request->input('correo'),
-            'estado' => $request->input('estado', 'confirmado'),
-            'eventoId' => $request->input('evento_id')
-        ];
+{
+    $request->validate([
+        'evento_id' => 'required',
+        'nombre' => 'required|string',
+        'correo' => 'required|email',
+        'estadoConfirmacion' => 'required|in:confirmado,rechazado'
+    ]);
 
-        $response = Http::post("{$this->backendUrl}/asistencia", $datos);
+    $datosInvitado = [
+        'nombre' => $request->nombre,
+        'correo' => $request->correo,
+        'estadoConfirmacion' => $request->estadoConfirmacion
+    ];
+
+    try {
+        // Le enviamos el invitado a la ruta que ya tiene lista tu backend Node.js
+        // (Nota: Como es una ruta pública, el backend debería tener un endpoint público para agregar invitados,
+        // o Laravel debe usar un Token de administrador del sistema para insertarlo).
+        $response = Http::timeout(5)->post("http://localhost:3000/api/eventos/publico/{$request->evento_id}/registro", $datosInvitado);
 
         if ($response->successful()) {
-            return back()->with('success', '¡Asistencia registrada correctamente!');
+            if ($request->estadoConfirmacion === 'confirmado') {
+                // Creamos una cadena única para el QR (Ej: email + ID_evento)
+                $qrData = $request->correo . '|' . $request->evento_id;
+                
+                // Retornamos a la misma vista, pero activando la pantalla del QR
+                return back()->with([
+                    'ticket_generado' => true,
+                    'qr_data' => urlencode($qrData)
+                ]);
+            } else {
+                // Si dijo que no asiste, le mostramos un mensaje de despedida
+                return back()->with('error', 'Lamentamos que no puedas asistir. ¡Gracias por avisar!');
+            }
         }
 
-        return back()->with('error', 'Error al registrar la asistencia.');
+        return back()->with('error', 'No pudimos registrar tu asistencia. Intenta nuevamente.');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Error de conexión con el servidor.');
     }
+}
 
     /**
      * Webhook de sincronización de estados emitidos por Node.js

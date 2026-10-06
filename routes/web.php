@@ -60,7 +60,7 @@ Route::middleware(['auth.custom'])->group(function () {
     Route::get('/eventos/crear', [EventController::class, 'create'])->name('events.create');
     Route::post('/eventos/guardar', [EventController::class, 'store'])->name('events.store');
     
-    // 💡 NUEVA RUTA PARA SELECCIONAR EVENTO EN LA PESTAÑA "MIS EVENTOS"
+    // 💡 RUTAS PARA SELECCIONAR EVENTO EN LA PESTAÑA "MIS EVENTOS"
     Route::post('/eventos/seleccionar', [EventController::class, 'seleccionarEvento'])->name('anfitrion.seleccionar_evento');
 
     // ========================================================
@@ -70,7 +70,7 @@ Route::middleware(['auth.custom'])->group(function () {
         // Dashboard principal del organizador
         Route::get('/', [HostController::class, 'index'])->name('index');
         
-        // 💡 NUEVA RUTA: Listado de todas mis celebraciones
+        // Listado de todas mis celebraciones
         Route::get('/mis-eventos', [HostController::class, 'misEventos'])->name('mis_eventos');
 
         // CRUD de Eventos Dinámicos (Creación según la plantilla elegida)
@@ -93,20 +93,20 @@ Route::middleware(['auth.custom'])->group(function () {
     });
 
 
-  // ========================================================
+    // ========================================================
     // 🖥️ MÓDULO ADMINISTRADOR: SUPERVISIÓN GLOBAL DE INVITA APP
     // ========================================================
     Route::prefix('admin')->name('admin.')->group(function () {
         // 1. Panel base (Menú de Tarjetas Gigantes)
         Route::get('/', [AdminController::class, 'index'])->name('index');
         
-        // 2. NUEVAS RUTAS: Vistas independientes del menú lúdico
+        // 2. Vistas independientes del menú lúdico
         Route::get('/eventos', [AdminController::class, 'eventos'])->name('eventos');
         Route::get('/soporte', [AdminController::class, 'soporte'])->name('soporte');
         Route::get('/metricas', [AdminController::class, 'metricas'])->name('metricas');
         Route::get('/usuarios', [AdminController::class, 'usuarios'])->name('usuarios');
 
-        // 3. Acciones de Control (Manteniendo tus funciones intactas)
+        // 3. Acciones de Control
         Route::post('/eventos/{id}/estado', [AdminController::class, 'updateStatus'])->name('events.status');
 
         // CRUD Global de Artículos / Requerimientos de Plantillas (Regalos o Insumos base)
@@ -121,9 +121,17 @@ Route::middleware(['auth.custom'])->group(function () {
     });
 
 
-    // RUTAS DE MÓDULOS PREMIUM (Protegidas por middleware de sesión)
+    // ========================================================
+    // 🧩 RUTAS DE MÓDULOS PREMIUM (Protegidas por sesión)
+    // ========================================================
     Route::prefix('eventos/modulos')->group(function () {
         
+        // 🎟️ NUEVA RUTA MÓDULO CHECK-IN: Vista del escáner QR en puerta
+        // Se coloca arriba para que la ruta maestra no la intercepte como un error.
+        Route::get('/checkin', function () {
+            return view('anfitrion.modulos.checkin');
+        })->name('modulos.checkin');
+
         // 1. Ruta Maestra para mostrar las vistas (Regalos, Cuotas, etc.)
         Route::get('/{modulo}', [\App\Http\Controllers\ModuloController::class, 'show'])->name('modulos.show');
 

@@ -7,11 +7,11 @@
     // Si no es personalizado y no tiene módulos explícitos, inyectamos la plantilla por defecto
     if (empty($modulosActivos) && $tipoEvento !== 'personalizado') {
         $plantillas = [
-            'baby_shower' => ['regalos', 'itinerario', 'menu'],
-            'matrimonio'  => ['regalos', 'mesas', 'itinerario', 'menu', 'galeria'],
-            'cumpleanos'  => ['itinerario', 'avisos', 'musica', 'galeria'],
-            'asado'       => ['cuotas', 'itinerario', 'insumos', 'musica'],
-            'fiesta'      => ['itinerario', 'avisos', 'musica', 'check_in'],
+            'baby_shower' => ['regalos', 'itinerario', 'menu', 'checkin'],
+            'matrimonio'  => ['regalos', 'mesas', 'itinerario', 'menu', 'galeria', 'checkin'],
+            'cumpleanos'  => ['itinerario', 'avisos', 'musica', 'galeria', 'checkin'],
+            'asado'       => ['cuotas', 'itinerario', 'insumos', 'musica', 'checkin'],
+            'fiesta'      => ['itinerario', 'avisos', 'musica', 'checkin'],
         ];
         $modulosActivos = $plantillas[$tipoEvento] ?? [];
     }
@@ -64,6 +64,11 @@
 
     $temaActual = $configuracionTemas[$tipoEvento] ?? $configuracionTemas['personalizado'];
     $colorTemaCustom = $eventoActivo['configVisual']['colorTema'] ?? $temaActual['hex'];
+
+// Forzar siempre la activación del escáner, sin importar la base de datos
+    if (!in_array('checkin', $modulosActivos) && !in_array('check_in', $modulosActivos)) {
+        $modulosActivos[] = 'checkin';
+    }
 @endphp
 
 <!DOCTYPE html>

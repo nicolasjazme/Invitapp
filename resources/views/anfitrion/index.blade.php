@@ -10,10 +10,10 @@
     // Fallback de plantillas sincronizado con MongoDB
     if (empty($modulosActivos) && $tipoEvento !== 'personalizado') {
         $plantillas = [
-            'babyshower' => ['regalos', 'itinerario', 'menu'],
-            'matrimonio' => ['regalos', 'mesas', 'itinerario', 'menu', 'galeria'],
-            'cumpleanos' => ['itinerario', 'avisos', 'musica', 'galeria'],
-            'asado'      => ['cuota', 'itinerario', 'insumos', 'musica'],
+            'babyshower' => ['regalos', 'itinerario', 'menu', 'checkin'],
+            'matrimonio' => ['regalos', 'mesas', 'itinerario', 'menu', 'galeria', 'checkin'],
+            'cumpleanos' => ['itinerario', 'avisos', 'musica', 'galeria', 'checkin'],
+            'asado'      => ['cuota', 'itinerario', 'insumos', 'musica', 'checkin'],
             'fiesta'     => ['itinerario', 'avisos', 'musica', 'checkin'],
         ];
         $modulosActivos = $plantillas[$tipoEvento] ?? [];
@@ -26,6 +26,11 @@
     $eventoId = $eventoActivo['_id'] ?? $eventoActivo['id'] ?? '';
     $slug = $eventoActivo['slug'] ?? '';
     $enlacePublico = url('/e/' . $slug);
+
+// Forzar siempre la activación del escáner, sin importar la base de datos
+    if (!in_array('checkin', $modulosActivos) && !in_array('check_in', $modulosActivos)) {
+        $modulosActivos[] = 'checkin';
+    }    
 @endphp
 
 <div class="space-y-8 animate-fade-in-up pb-20">
@@ -163,17 +168,18 @@
                 </div>
             </div>
 
-            {{-- Métrica 4: Modo Check-In --}}
-            <div class="bg-white p-5 sm:p-6 rounded-[2rem] border border-slate-200/60 shadow-sm flex flex-col sm:flex-row items-center sm:text-left text-center gap-4 hover:-translate-y-1 transition-transform">
-                <div class="w-16 h-16 rounded-2xl bg-cyan-50 text-cyan-500 flex items-center justify-center text-3xl shrink-0">
+            {{-- Métrica 4: Modo Check-In (BOTÓN DIRECTO) --}}
+            <a href="/eventos/modulos/checkin" class="bg-white p-5 sm:p-6 rounded-[2rem] border border-slate-200/60 shadow-sm flex flex-col sm:flex-row items-center sm:text-left text-center gap-4 hover:-translate-y-1 hover:border-cyan-300 hover:shadow-cyan-100/50 transition-all cursor-pointer group">
+                <div class="w-16 h-16 rounded-2xl bg-cyan-50 text-cyan-500 flex items-center justify-center text-3xl shrink-0 group-hover:bg-cyan-500 group-hover:text-white transition-colors">
                     🎟️
                 </div>
                 <div>
-                    <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Control Puerta</span>
-                    <span class="text-xl font-black text-slate-900">Check-In</span>
+                    <span class="text-[10px] font-black text-cyan-600 uppercase tracking-wider block mb-1">Control Puerta</span>
+                    <span class="text-xl font-black text-slate-900 group-hover:text-cyan-600 transition-colors">Abrir Escáner</span>
                 </div>
-            </div>
-        </div>
+            </a>
+            
+        </div> <!-- AQUÍ ESTÁ EL DIV QUE FALTABA -->
 
         {{-- ========================================== --}}
         {{-- GRID DE ACCESOS RÁPIDOS A MÓDULOS ACTIVOS  --}}
@@ -188,7 +194,7 @@
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
                 
-                {{-- NUEVO: Módulo base: Lista de Invitados (Siempre visible) --}}
+                {{-- Módulo base: Lista de Invitados (Siempre visible) --}}
                 <div class="group bg-indigo-600 p-6 rounded-[2rem] shadow-md hover:shadow-xl hover:-translate-y-1 transition-all flex flex-col justify-between duration-300 relative overflow-hidden">
                     <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white/10 rounded-full blur-2xl transition-transform group-hover:scale-150"></div>
                     <div class="relative z-10">
@@ -334,7 +340,7 @@
                 @if(in_array('checkin', $modulosActivos) || in_array('check_in', $modulosActivos))
                     <div class="group bg-white p-6 rounded-[2rem] border-2 border-slate-100 shadow-sm hover:border-cyan-200 hover:shadow-xl transition-all flex flex-col justify-between hover:-translate-y-1 duration-300">
                         <div>
-                            <div class="text-5xl mb-4 group-hover:scale-110 transition-transform origin-left">🎟️️</div>
+                            <div class="text-5xl mb-4 group-hover:scale-110 transition-transform origin-left">🎟</div>
                             <h3 class="font-black text-slate-800 text-xl mb-2">Check-In</h3>
                             <p class="text-sm text-slate-500 mb-8 font-medium">Escanea códigos QR en puerta y lleva registro de quién ingresa.</p>
                         </div>
