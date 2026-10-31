@@ -77,8 +77,8 @@
                         <span class="text-xl">👁️</span> Ver Invitación
                     </a>
                     
-                    {{-- Editar / Ajustes --}}
-                    <a href="/anfitrion/eventos/{{ $eventoId }}/editar" class="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-4 rounded-2xl transition-all shadow-md active:scale-95">
+                    {{-- Editar / Ajustes (Ruta Corregida) --}}
+                    <a href="/anfitrion/eventos/{{ $eventoActivo['_id'] ?? $eventoActivo['id'] ?? '' }}/editar" class="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-4 rounded-2xl transition-all shadow-md hover:-translate-y-1 active:scale-95">
                         <span class="text-xl">🛠️</span> Ajustes
                     </a>
                 </div>
@@ -353,6 +353,37 @@
             </div>
         </div>
     @endif
+</div>
+
+{{-- 🛠️ MÓDULO DE SOPORTE E INCIDENCIAS (ANFITRIÓN) --}}
+<div class="mt-10 bg-white p-6 sm:p-8 rounded-[2.5rem] border border-stone-200/60 shadow-sm">
+    <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
+            💡
+        </div>
+        <div>
+            <h3 class="text-lg font-black text-stone-800">¿Necesitas ayuda con tu evento?</h3>
+            <p class="text-xs text-stone-500 font-medium">Envía una solicitud directamente al Administrador (ej. liberar un regalo, corregir un invitado).</p>
+        </div>
+    </div>
+
+    @if(session('success'))
+        <div class="mb-4 p-4 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm font-bold rounded-2xl">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    <form action="{{ route('anfitrion.incidencias.store') }}" method="POST" class="space-y-4">
+        @csrf
+        <div>
+            <textarea name="mensaje" rows="3" required placeholder="Describe aquí tu solicitud o incidencia..." class="w-full p-4 rounded-2xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-stone-50 text-sm font-medium text-stone-700 resize-none"></textarea>
+        </div>
+        <div class="flex justify-end">
+            <button type="submit" class="px-6 py-3 bg-stone-900 hover:bg-stone-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-2">
+                <span>Enviar a Soporte 🚀</span>
+            </button>
+        </div>
+    </form>
 </div>
 
 <!-- Script para copiar al portapapeles -->

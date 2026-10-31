@@ -129,50 +129,40 @@
         }
 
         function verificarTicket(codigoQR) {
-            // NOTA PARA BACKEND:
-            // Aquí haremos un fetch('/api/eventos/checkin', { method: 'POST', body: { qr_data: codigoQR } })
-            
-            // SIMULACIÓN DE LÓGICA PARA EL MVP VISUAL:
             Swal.fire({
                 title: 'Verificando...',
                 text: 'Consultando la base de datos',
-                timer: 800,
-                timerProgressBar: true,
+                allowOutsideClick: false,
                 didOpen: () => { Swal.showLoading() }
-            }).then(() => {
-                
-                // Lógica simulada de "Doble Check-in"
-                // Asumimos que si el QR incluye la palabra "rechazado" o lo leemos 2 veces, falla.
-                const yaIngreso = localStorage.getItem('qr_' + codigoQR);
+            });
 
-                if (yaIngreso) {
-                    // ❌ ERROR: TICKET YA UTILIZADO
-                    Swal.fire({
-                        icon: 'error',
-                        title: '¡Acceso Denegado!',
-                        text: 'Este ticket ya fue utilizado o no es válido.',
-                        confirmButtonColor: '#e11d48',
-                        confirmButtonText: 'Continuar Escaneando'
-                    }).then(() => {
-                        html5QrCode.resume(); // Retomamos la cámara
-                    });
-                } else {
+            // Hacemos la petición real al Backend en Node.js
+            fetch(`http://localhost:3000/api/eventos/publico/${eventoId}/checkin`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ qr_data: codigoQR })
+            })
+            .then(response => response.json().then(data => ({ status: response.status, body: data })))
+            .then(({ status, body }) => {
+                
+                if (status === 200) {
                     // ✅ ÉXITO: PRIMERA VEZ
-                    localStorage.setItem('qr_' + codigoQR, 'true'); // Guardamos localmente para la simulación
                     
-                    // Actualizamos métricas
+                    // Actualizamos métricas en pantalla
                     contador++;
                     document.getElementById('contador-ingresos').innerText = contador;
                     
-                    // Registramos en el Log
+                    // Registramos en el Log visual
                     if(contador === 1) logResultados.innerHTML = ''; // Limpiamos el texto vacío
-                    const emailLeido = codigoQR.split('|')[0] || 'Invitado'; // Extraemos correo del QR
                     
                     const logItem = `
                         <div class="bg-white border-l-4 border-cyan-500 p-3 rounded-xl shadow-sm flex items-center justify-between animate-fade-in-up">
                             <div>
                                 <p class="text-sm font-bold text-slate-800">✅ Ingreso Autorizado</p>
-                                <p class="text-[10px] text-slate-400 font-mono">${emailLeido}</p>
+                                <p class="text-[10px] text-slate-400 font-mono">${body.nombre} (${body.correo})</p>
                             </div>
                             <span class="text-[10px] text-slate-400">${new Date().toLocaleTimeString()}</span>
                         </div>
@@ -182,14 +172,50 @@
                     Swal.fire({
                         icon: 'success',
                         title: '¡Adelante!',
-                        text: 'Ingreso registrado correctamente.',
+                        text: `Ingreso registrado para ${body.nombre}.`,
                         confirmButtonColor: '#0891b2',
-                        timer: 2000,
-                        showConfirmButton: false
+                        timer: 2500,
+                        showConfirmButton: false,
+                        customClass: { popup: 'rounded-3xl' } 
                     }).then(() => {
                         html5QrCode.resume(); // Retomamos la cámara
                     });
+
+                } else if (status === 409) {
+                    // ❌ ERROR: TICKET YA UTILIZADO (Doble Check-in)
+                    const horaFormateada = new Date(body.horaOriginal).toLocaleTimeString();
+                    Swal.fire({
+                        icon: 'error',
+                        title: '¡Acceso Denegado!',
+                        text: `Este ticket ya fue utilizado a las ${horaFormateada}.`,
+                        confirmButtonColor: '#e11d48',
+                        confirmButtonText: 'Continuar Escaneando',
+                        customClass: { popup: 'rounded-3xl' } 
+                    }).then(() => {
+                        html5QrCode.resume(); 
+                    });
+
+                } else {
+                    // ❌ OTROS ERRORES (QR inválido, evento incorrecto)
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Código Inválido',
+                        text: body.mensaje || 'Hubo un problema al verificar este código.',
+                        confirmButtonColor: '#e11d48',
+                        customClass: { popup: 'rounded-3xl' }
+                    }).then(() => {
+                        html5QrCode.resume(); 
+                    });
                 }
+            })
+            .catch(error => {
+                console.error('Error de red:', error);
+                Swal.fire({
+                     icon: 'error',
+                     title: 'Error de conexión', 
+                     text: 'No se pudo contactar con el servidor.', 
+                     customClass: { popup: 'rounded-3xl' }
+                }).then(() => html5QrCode.resume());
             });
         }
     });

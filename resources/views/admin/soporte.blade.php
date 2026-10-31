@@ -82,7 +82,7 @@
                             </div>
 
                             {{-- Botón de Resolución mediante Formulario --}}
-                            <form action="{{ route('incidencias.complete', $incidencia['_id'] ?? $loop->index) }}" method="POST" class="m-0" onsubmit="confirmarResolucion(event, this)">
+                            <form action="{{ route('admin.incidencias.complete', $incidencia['_id'] ?? $loop->index) }}" method="POST" class="m-0" onsubmit="confirmarResolucion(event, this)">
                                 @csrf
                                 <button type="submit" class="w-full py-3 bg-stone-900 hover:bg-stone-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2">
                                     <span class="text-emerald-400 text-base">✓</span> Marcar como Resuelto
