@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro - Invita App</title>
+    <title>Registro - Invitapp</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-indigo-500 selection:text-white min-h-screen flex flex-col">
@@ -13,7 +13,7 @@
             <div class="flex justify-between items-center h-16">
                 <div class="flex items-center gap-2 group cursor-pointer">
                     <span class="text-2xl group-hover:rotate-12 transition-transform duration-300">✨</span>
-                    <a href="/" class="font-black text-xl tracking-tight text-slate-900 hover:text-indigo-600 transition-colors">Invita App</a>
+                    <a href="/" class="font-black text-xl tracking-tight text-slate-900 hover:text-indigo-600 transition-colors">Invitapp</a>
                 </div>
                 <div>
                     <a href="/" class="text-sm font-bold text-slate-600 hover:text-indigo-600 transition-colors px-4 py-2 flex items-center gap-1 group">
@@ -32,7 +32,7 @@
                     ✨
                 </div>
                 <h1 class="text-2xl font-black text-slate-900 tracking-tight">Crear Cuenta</h1>
-                <p class="text-xs text-slate-500 mt-1 font-medium">Regístrate para organizar tus celebraciones en Invita App</p>
+                <p class="text-xs text-slate-500 mt-1 font-medium">Regístrate para organizar tus celebraciones en Invitapp</p>
             </div>
 
             @if(session('error'))

@@ -25,9 +25,9 @@
     // ID seguro para las rutas
     $eventoId = $eventoActivo['_id'] ?? $eventoActivo['id'] ?? '';
     $slug = $eventoActivo['slug'] ?? '';
-    $enlacePublico = url('/e/' . $slug);
+    $enlacePublico = $slug ? url('/e/' . $slug) : '';
 
-// Forzar siempre la activación del escáner, sin importar la base de datos
+    // Forzar siempre la activación del escáner, sin importar la base de datos
     if (!in_array('checkin', $modulosActivos) && !in_array('check_in', $modulosActivos)) {
         $modulosActivos[] = 'checkin';
     }    
@@ -67,18 +67,20 @@
                 </a>
             @else
                 <div class="flex flex-col sm:flex-row gap-3">
-                    {{-- Copiar Link Público (NUEVO) --}}
-                    <button onclick="copiarLink('{{ $enlacePublico }}')" class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-4 rounded-2xl transition-all shadow-md hover:-translate-y-1 active:scale-95">
-                        <span class="text-xl">🔗</span> Copiar Link
-                    </button>
+                    @if($enlacePublico)
+                        {{-- Copiar Link Público --}}
+                        <button type="button" onclick="copiarLink('{{ $enlacePublico }}')" class="inline-flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-4 rounded-2xl transition-all shadow-md hover:-translate-y-1 active:scale-95 cursor-pointer">
+                            <span class="text-xl">🔗</span> Copiar Link
+                        </button>
+                        
+                        {{-- Ver Invitación --}}
+                        <a href="/e/{{ $slug }}" target="_blank" class="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold px-6 py-4 rounded-2xl transition-all border-2 border-slate-200 shadow-sm active:scale-95">
+                            <span class="text-xl">👁️</span> Ver Invitación
+                        </a>
+                    @endif
                     
-                    {{-- Ver Invitación --}}
-                    <a href="/e/{{ $slug }}" target="_blank" class="inline-flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold px-6 py-4 rounded-2xl transition-all border-2 border-slate-200 shadow-sm active:scale-95">
-                        <span class="text-xl">👁️</span> Ver Invitación
-                    </a>
-                    
-                    {{-- Editar / Ajustes (Ruta Corregida) --}}
-                    <a href="/anfitrion/eventos/{{ $eventoActivo['_id'] ?? $eventoActivo['id'] ?? '' }}/editar" class="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-4 rounded-2xl transition-all shadow-md hover:-translate-y-1 active:scale-95">
+                    {{-- Editar / Ajustes --}}
+                    <a href="/anfitrion/eventos/{{ $eventoId }}/editar" class="inline-flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-6 py-4 rounded-2xl transition-all shadow-md hover:-translate-y-1 active:scale-95">
                         <span class="text-xl">🛠️</span> Ajustes
                     </a>
                 </div>
@@ -121,8 +123,9 @@
                         🎁
                     </div>
                     <div>
-                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Lista de Deseos</span>
-                        <span class="text-xl font-black text-slate-900">Activa</span>
+                        <span class="text-[10px] font-black text-slate-400 uppercase tracking-wider block mb-1">Regalos Reservados</span>
+                        <span id="kpi-regalos-reservados" class="text-2xl font-black text-slate-900">Activa</span>
+                        <span id="kpi-regalos-total" class="block text-[11px] font-bold text-slate-400"></span>
                     </div>
                 </div>
             @elseif(in_array('insumos', $modulosActivos))
@@ -179,7 +182,7 @@
                 </div>
             </a>
             
-        </div> <!-- AQUÍ ESTÁ EL DIV QUE FALTABA -->
+        </div>
 
         {{-- ========================================== --}}
         {{-- GRID DE ACCESOS RÁPIDOS A MÓDULOS ACTIVOS  --}}
@@ -212,7 +215,7 @@
                         <div>
                             <div class="text-5xl mb-4 group-hover:scale-110 transition-transform origin-left">🎁</div>
                             <h3 class="font-black text-slate-800 text-xl mb-2">Lista de Deseos</h3>
-                            <p class="text-sm text-slate-500 mb-8 font-medium">Administra tu catálogo de regalos y revisa quién ha reservado.</p>
+                            <p class="text-sm text-slate-500 mb-8 font-medium">Administra tu catálogo de regalos y revisa el avance de reservas.</p>
                         </div>
                         <a href="/eventos/modulos/regalos" class="w-full text-center py-4 px-4 bg-slate-50 hover:bg-rose-600 text-slate-700 hover:text-white font-black text-sm rounded-2xl transition-colors block">
                             Gestionar Regalos
@@ -379,23 +382,64 @@
             <textarea name="mensaje" rows="3" required placeholder="Describe aquí tu solicitud o incidencia..." class="w-full p-4 rounded-2xl border border-stone-200 focus:outline-none focus:ring-2 focus:ring-amber-400 bg-stone-50 text-sm font-medium text-stone-700 resize-none"></textarea>
         </div>
         <div class="flex justify-end">
-            <button type="submit" class="px-6 py-3 bg-stone-900 hover:bg-stone-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-2">
+            <button type="submit" class="px-6 py-3 bg-stone-900 hover:bg-stone-800 text-white font-extrabold text-xs uppercase tracking-wider rounded-xl transition-all shadow-md active:scale-95 flex items-center gap-2 cursor-pointer">
                 <span>Enviar a Soporte 🚀</span>
             </button>
         </div>
     </form>
 </div>
 
-<!-- Script para copiar al portapapeles -->
 <script>
     function copiarLink(texto) {
+        if (!texto) return;
         navigator.clipboard.writeText(texto).then(() => {
-            alert('¡Enlace público copiado al portapapeles! Ahora puedes enviarlo a tus invitados.');
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Enlace copiado!',
+                    text: 'Ya puedes enviar la invitación mágica a tus invitados.',
+                    timer: 2000,
+                    showConfirmButton: false,
+                    customClass: { popup: 'rounded-3xl' }
+                });
+            } else {
+                alert('¡Enlace público copiado al portapapeles!');
+            }
         }).catch(err => {
             console.error('Error al copiar: ', err);
-            alert('No se pudo copiar el enlace.');
         });
     }
+
+    @if(!empty($eventoId) && in_array('regalos', $modulosActivos))
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = '{{ Session::get("token_jwt") }}';
+            const headers = { 'Accept': 'application/json' };
+            if (token) headers['Authorization'] = `Bearer ${token}`;
+
+            fetch(`http://localhost:3000/api/eventos/{{ $eventoId }}/regalos`, { headers })
+                .then(res => res.ok ? res.json() : null)
+                .then(data => {
+                    if (!data) return;
+                    const lista = Array.isArray(data) ? data : (data.regalos || []);
+                    let totalSolicitado = 0;
+                    let totalReservado = 0;
+
+                    lista.forEach(regalo => {
+                        const sol = Number(regalo.cantidad_solicitada || 1);
+                        const disp = regalo.cantidad_disponible !== undefined ? Number(regalo.cantidad_disponible) : sol;
+                        const resCount = regalo.estado === 'reservado' ? sol : Math.max(0, sol - disp);
+                        totalSolicitado += sol;
+                        totalReservado += resCount;
+                    });
+
+                    const elReservados = document.getElementById('kpi-regalos-reservados');
+                    const elTotal = document.getElementById('kpi-regalos-total');
+                    if (elReservados) elReservados.innerText = `${totalReservado}/${totalSolicitado}`;
+                    if (elTotal) elTotal.innerText = totalSolicitado > 0 ? 'unidades reservadas' : 'Sin ítems aún';
+                })
+                .catch(() => {});
+        });
+    @endif
 </script>
 
 <style>

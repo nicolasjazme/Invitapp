@@ -76,7 +76,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invita App - Panel de Control</title>
+    <title>Invitapp - Panel de Control</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -106,7 +106,7 @@
             <div class="w-10 h-10 {{ $temaActual['primario'] }} text-white rounded-xl flex items-center justify-center text-xl shadow-md">
                 {{ $temaActual['emoji'] }}
             </div>
-            <span class="font-black text-xl tracking-tight text-slate-900">Invita App</span>
+            <span class="font-black text-xl tracking-tight text-slate-900">Invitapp</span>
         </div>
         <button id="btn-toggle-mobile" onclick="toggleSidebar(true)" class="p-2 text-slate-600 hover:text-slate-900 focus:outline-none rounded-xl hover:bg-slate-100 transition-colors">
             <i class="fa-solid fa-bars text-2xl"></i>
@@ -130,7 +130,7 @@
                         {{ $temaActual['emoji'] }}
                     </div>
                     <div>
-                        <h2 class="font-black text-2xl tracking-tight text-slate-900 leading-none">Invita App</h2>
+                        <h2 class="font-black text-2xl tracking-tight text-slate-900 leading-none">Invitapp</h2>
                         <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mt-1">Panel de Control</span>
                     </div>
                 </div>

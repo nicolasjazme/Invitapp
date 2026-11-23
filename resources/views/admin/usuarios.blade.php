@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Usuarios - Admin Invita App</title>
+    <title>Gestión de Usuarios - Admin Invitapp</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
@@ -34,7 +34,7 @@
                 <h1 class="text-3xl md:text-4xl font-black text-stone-900 tracking-tight">
                     Directorio de Usuarios
                 </h1>
-                <p class="text-stone-500 mt-2 text-sm font-medium">Administra los accesos y revisa quién forma parte de Invita App.</p>
+                <p class="text-stone-500 mt-2 text-sm font-medium">Administra los accesos y revisa quién forma parte de Invitapp.</p>
             </div>
 
             {{-- Grid de Tarjetas de Perfil --}}

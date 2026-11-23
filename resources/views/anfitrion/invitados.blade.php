@@ -27,20 +27,17 @@
         </div>
         
         <div class="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-4 sm:mt-0">
-            {{-- Botón Copiar Link --}}
             @if(!empty($slugEvento))
-                <button onclick="copiarEnlace('{{ url('/e/'.$slugEvento) }}')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-3 rounded-2xl transition-all shadow-sm active:scale-95">
+                <button type="button" onclick="copiarEnlace('{{ url('/e/'.$slugEvento) }}')" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-3 rounded-2xl transition-all shadow-sm active:scale-95 cursor-pointer">
                     <i class="fa-solid fa-link"></i> Link Público
                 </button>
             @endif
             
-            {{-- Botón Importar (Abre Modal) --}}
-            <button onclick="abrirModalImportar()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold px-5 py-3 rounded-2xl transition-all border-2 border-slate-200 shadow-sm active:scale-95">
+            <button type="button" onclick="abrirModalImportar()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white hover:bg-slate-50 text-slate-700 font-bold px-5 py-3 rounded-2xl transition-all border-2 border-slate-200 shadow-sm active:scale-95 cursor-pointer">
                 <i class="fa-solid fa-file-csv text-emerald-500"></i> Importar CSV
             </button>
             
-            {{-- Botón Agregar (Abre Modal) --}}
-            <button onclick="abrirModalAgregar()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl transition-all shadow-md hover:-translate-y-1 active:scale-95">
+            <button type="button" onclick="abrirModalAgregar()" class="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl transition-all shadow-md hover:-translate-y-1 active:scale-95 cursor-pointer">
                 <i class="fa-solid fa-user-plus"></i> Añadir Manual
             </button>
         </div>
@@ -111,17 +108,19 @@
                         @php
                             $idGuest = $guest['_id'] ?? $guest['id'] ?? '';
                             $estadoG = $guest['estadoConfirmacion'] ?? 'pendiente';
+                            $nombreGuest = $guest['nombre'] ?? 'Invitado';
+                            $inicial = strtoupper(mb_substr($nombreGuest, 0, 1));
                         @endphp
-                        <tr class="hover:bg-slate-50/50 transition-colors fila-invitado group">
+                        <tr class="hover:bg-slate-50/70 transition-colors fila-invitado">
                             
                             {{-- Columna Nombre y Correo --}}
                             <td class="p-5">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-600 font-black text-sm shrink-0">
-                                        {{ strtoupper(substr($guest['nombre'], 0, 1)) }}
+                                    <div class="w-10 h-10 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-700 font-black text-sm shrink-0">
+                                        {{ $inicial }}
                                     </div>
                                     <div>
-                                        <p class="font-bold text-slate-900 campo-nombre">{{ $guest['nombre'] ?? '' }}</p>
+                                        <p class="font-bold text-slate-900 campo-nombre">{{ $nombreGuest }}</p>
                                         <p class="text-xs text-slate-400 font-mono campo-correo">{{ $guest['correo'] ?: 'Sin correo registrado' }}</p>
                                     </div>
                                 </div>
@@ -129,35 +128,37 @@
                             
                             {{-- Columna Selector de Estado --}}
                             <td class="p-5 align-middle text-center">
-                                <form action="{{ route('anfitrion.guests.update', $idGuest) }}" method="POST" class="inline-block m-0">
-                                    @csrf 
-                                    @method('PUT')
-                                    <select name="estadoConfirmacion" onchange="this.form.submit()" class="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-indigo-200 shadow-sm transition-all hover:border-indigo-300">
-                                        <option value="pendiente" {{ $estadoG === 'pendiente' ? 'selected' : '' }}>⏳ Pendiente</option>
-                                        <option value="confirmado" {{ $estadoG === 'confirmado' ? 'selected' : '' }}>✅ Confirmado</option>
-                                        <option value="rechazado" {{ $estadoG === 'rechazado' ? 'selected' : '' }}>❌ No Asistirá</option>
-                                    </select>
-                                </form>
+                                @if(!empty($idGuest))
+                                    <form action="{{ route('anfitrion.guests.update', $idGuest) }}" method="POST" class="inline-block m-0">
+                                        @csrf 
+                                        @method('PUT')
+                                        <select name="estadoConfirmacion" onchange="this.form.submit()" class="bg-white border border-slate-200 px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 outline-none cursor-pointer focus:ring-2 focus:ring-indigo-200 shadow-sm transition-all hover:border-indigo-300">
+                                            <option value="pendiente" {{ $estadoG === 'pendiente' ? 'selected' : '' }}>⏳ Pendiente</option>
+                                            <option value="confirmado" {{ $estadoG === 'confirmado' ? 'selected' : '' }}>✅ Confirmado</option>
+                                            <option value="rechazado" {{ $estadoG === 'rechazado' ? 'selected' : '' }}>❌ No Asistirá</option>
+                                        </select>
+                                    </form>
+                                @else
+                                    <span class="text-xs font-bold text-slate-400 uppercase">{{ $estadoG }}</span>
+                                @endif
                             </td>
                             
                             {{-- Columna Acciones --}}
-                            <td class="p-5 align-middle text-right space-x-1 whitespace-nowrap">
-                                <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <button onclick="abrirModalEditar('{{ $idGuest }}', '{{ addslashes($guest['nombre'] ?? '') }}', '{{ addslashes($guest['correo'] ?? '') }}')" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-indigo-100 text-slate-500 hover:text-indigo-600 flex items-center justify-center transition-colors shadow-sm" title="Editar Invitado">
-                                        <i class="fa-solid fa-pen text-xs"></i>
-                                    </button>
-                                    <form action="{{ route('anfitrion.guests.destroy', $idGuest) }}" method="POST" onsubmit="return confirm('¿Remover a este invitado de la lista?')" class="inline-block m-0">
-                                        @csrf 
-                                        @method('DELETE')
-                                        <button type="submit" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-500 hover:text-rose-600 flex items-center justify-center transition-colors shadow-sm" title="Eliminar Invitado">
-                                            <i class="fa-solid fa-trash-can text-xs"></i>
+                            <td class="p-5 align-middle text-right whitespace-nowrap">
+                                @if(!empty($idGuest))
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button type="button" onclick="abrirModalEditar('{{ $idGuest }}', '{{ addslashes($nombreGuest) }}', '{{ addslashes($guest['correo'] ?? '') }}')" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-indigo-100 text-slate-600 hover:text-indigo-600 flex items-center justify-center transition-colors shadow-xs cursor-pointer" title="Editar Invitado">
+                                            <i class="fa-solid fa-pen text-xs"></i>
                                         </button>
-                                    </form>
-                                </div>
-                                {{-- Botón visible en móvil --}}
-                                <button class="sm:hidden text-slate-400 hover:text-indigo-600 p-2">
-                                    <i class="fa-solid fa-ellipsis-vertical"></i>
-                                </button>
+                                        <form action="{{ route('anfitrion.guests.destroy', $idGuest) }}" method="POST" onsubmit="return confirmarEliminacionInvitado(event, this, '{{ addslashes($nombreGuest) }}')" class="inline-block m-0">
+                                            @csrf 
+                                            @method('DELETE')
+                                            <button type="submit" class="w-9 h-9 rounded-xl bg-slate-100 hover:bg-rose-100 text-slate-600 hover:text-rose-600 flex items-center justify-center transition-colors shadow-xs cursor-pointer" title="Eliminar Invitado">
+                                                <i class="fa-solid fa-trash-can text-xs"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
                             </td>
                         </tr>
                     @empty
@@ -168,7 +169,7 @@
                                 </div>
                                 <h3 class="text-lg font-bold text-slate-800 mb-1">Aún no hay invitados</h3>
                                 <p class="text-sm text-slate-500 max-w-sm mx-auto mb-6">Usa el botón "Añadir Manual" o importa un CSV para empezar a llenar tu lista.</p>
-                                <button onclick="abrirModalAgregar()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-6 py-2.5 rounded-xl transition-colors text-sm">
+                                <button type="button" onclick="abrirModalAgregar()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-6 py-2.5 rounded-xl transition-colors text-sm cursor-pointer">
                                     Registrar primer invitado
                                 </button>
                             </td>
@@ -267,7 +268,7 @@
             </div>
             <div>
                 <label class="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Correo Electrónico</label>
-                <input type="email" id="edit_correo" name="correo" required class="w-full border-2 border-slate-100 p-3.5 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white text-sm bg-slate-50 font-medium">
+                <input type="email" id="edit_correo" name="correo" class="w-full border-2 border-slate-100 p-3.5 rounded-2xl outline-none focus:border-indigo-500 focus:bg-white text-sm bg-slate-50 font-medium">
             </div>
             <div class="flex justify-end gap-3 pt-4 border-t border-slate-100 mt-2">
                 <button type="button" onclick="cerrarModalEditar()" class="bg-white border-2 border-slate-200 hover:bg-slate-50 text-slate-600 px-6 py-3 rounded-2xl transition-all text-sm font-bold cursor-pointer">
@@ -285,7 +286,6 @@
 <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
 <script>
-    // 1. FUNCIONES MODALES
     function abrirModalAgregar() { document.getElementById('modalAgregar').classList.remove('hidden'); }
     function cerrarModalAgregar() { document.getElementById('modalAgregar').classList.add('hidden'); }
     
@@ -302,14 +302,32 @@
     }
     function cerrarModalEditar() { document.getElementById('modalEditar').classList.add('hidden'); }
 
-    // Cierra los modales al hacer clic fuera de ellos
     window.onclick = function(event) {
         if (event.target == document.getElementById('modalAgregar')) cerrarModalAgregar();
         if (event.target == document.getElementById('modalImportar')) cerrarModalImportar();
         if (event.target == document.getElementById('modalEditar')) cerrarModalEditar();
     }
 
-    // 2. COPIAR ENLACE AL PORTAPAPELES
+    function confirmarEliminacionInvitado(event, form, nombre) {
+        event.preventDefault();
+        Swal.fire({
+            title: '¿Eliminar invitado?',
+            text: `Se removerá a ${nombre} de la lista.`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#e11d48',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar',
+            customClass: { popup: 'rounded-3xl' }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                form.submit();
+            }
+        });
+        return false;
+    }
+
     function copiarEnlace(url) {
         navigator.clipboard.writeText(url).then(() => {
             Swal.fire({
@@ -323,7 +341,6 @@
         }).catch(err => console.error('Error al copiar: ', err));
     }
 
-    // 3. MOSTRAR NOMBRE DE ARCHIVO CSV
     function actualizarNombreArchivo(input) {
         const label = document.getElementById('nombre-archivo-subido');
         if(input.files && input.files[0]) {
@@ -332,7 +349,6 @@
         }
     }
 
-    // 4. BÚSQUEDA EN TIEMPO REAL
     function filtrarInvitados() {
         const busqueda = document.getElementById('input-buscador').value.toLowerCase();
         const filas = document.querySelectorAll('.fila-invitado');
@@ -348,8 +364,6 @@
         });
     }
 
-    // 5. SINCRONIZACIÓN SOCKET.IO Y ALERTAS LARAVEL
-    // (Mantenemos tu lógica original intacta que funciona perfectamente)
     const socket = io('http://localhost:3000');
 
     socket.on('nuevo-invitado', function(invitado) {
@@ -363,8 +377,7 @@
             timerProgressBar: true
         });
         
-        // ... (El resto de tu lógica para agregar la fila dinámicamente) ...
-        setTimeout(() => location.reload(), 1500); // Recarga rápida para MVP
+        setTimeout(() => location.reload(), 1500);
     });
 
     @if(session('success'))

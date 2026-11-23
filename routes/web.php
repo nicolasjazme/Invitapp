@@ -10,7 +10,7 @@ use App\Http\Controllers\InvitacionController;
 
 /*
 |--------------------------------------------------------------------------
-| Web Routes - Invita App Multi-Evento
+| Web Routes - Invitapp Multi-Evento
 |--------------------------------------------------------------------------
 */
 
@@ -94,7 +94,7 @@ Route::middleware(['auth.custom'])->group(function () {
 
 
     // ========================================================
-    // 🖥️ MÓDULO ADMINISTRADOR: SUPERVISIÓN GLOBAL DE INVITA APP
+    // 🖥️ MÓDULO ADMINISTRADOR: SUPERVISIÓN GLOBAL DE INVITAPP
     // ========================================================
     Route::prefix('admin')->name('admin.')->group(function () {
         // 1. Panel base (Menú de Tarjetas Gigantes)

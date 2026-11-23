@@ -7,7 +7,7 @@
         <h1 class="text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3">
             <span class="text-4xl">👤</span> Mi Perfil
         </h1>
-        <p class="text-slate-500 text-sm mt-2">Actualiza tus datos personales y credenciales de acceso a Invita App.</p>
+        <p class="text-slate-500 text-sm mt-2">Actualiza tus datos personales y credenciales de acceso a Invitapp.</p>
     </header>
 
     {{-- Alertas de Éxito o Error --}}

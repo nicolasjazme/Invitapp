@@ -78,25 +78,44 @@ class HostController extends Controller
      * Agrega un invitado manualmente
      */
     public function invitadosStore(Request $request)
-    {
-        $token = Session::get('token_jwt');
-        $eventoId = Session::get('evento_activo')['_id'] ?? null;
+{
+    $request->validate([
+        'nombre' => 'required|string|max:120',
+        'correo' => 'nullable|email|max:150',
+    ], [
+        'nombre.required' => 'El nombre del invitado es obligatorio.',
+        'correo.email' => 'Ingresa un correo electrónico válido.',
+    ]);
 
-        $datos = [
-            'nombre' => $request->input('nombre'),
-            'correo' => $request->input('correo'),
-            'eventoId' => $eventoId // Inyectamos el ID del evento al crear
-        ];
+    $token = Session::get('token_jwt');
+    $eventoActivo = Session::get('evento_activo') ?? [];
+    $eventoId = $eventoActivo['_id'] ?? $eventoActivo['id'] ?? $request->input('evento_id');
 
-        $response = Http::withToken($token)->post("{$this->backendUrl}/eventos/{$eventoId}/invitados", $datos);
-
-        if ($response->successful()) {
-            return back()->with('success', '¡Invitado registrado con éxito!');
-        }
-
-        $mensajeError = $response->json('mensaje') ?? 'Error al guardar invitado.';
-        return back()->with('error', $mensajeError);
+    if (empty($eventoId)) {
+        return back()->with('error', 'No hay un evento activo en la sesión para registrar invitados.');
     }
+
+    $datos = [
+        'nombre' => trim($request->input('nombre')),
+        'correo' => $request->filled('correo') ? trim($request->input('correo')) : null,
+        'eventoId' => $eventoId,
+    ];
+
+    $response = Http::withToken($token)
+        ->acceptJson()
+        ->post("{$this->backendUrl}/eventos/{$eventoId}/invitados", $datos);
+
+    if ($response->successful()) {
+        return back()->with('success', '¡Invitado registrado con éxito!');
+    }
+
+    $mensajeError = $response->json('mensaje')
+        ?? $response->json('message')
+        ?? $response->json('error')
+        ?? "Error al guardar invitado (HTTP {$response->status()}).";
+
+    return back()->with('error', $mensajeError);
+}
 
     /**
      * Edita datos o estado de confirmación del invitado
